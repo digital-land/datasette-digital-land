@@ -62,7 +62,8 @@ class DuckDatabase(Database):
             observer.schedule(event_handler, directory, recursive=True)
             observer.start()
         elif file:
-            raw_conn = duckdb.connect(file, read_only=True)
+            self.file = 'http://localhost:4566/local-collection-data/issues.parquet'
+            raw_conn = duckdb.connect()
             conn = ProxyConnection(raw_conn)
         else:
             raise Exception('must specify directory or file')
@@ -70,6 +71,8 @@ class DuckDatabase(Database):
         if httpfs:
             conn.conn.execute('install httpfs;').fetchall()
             conn.conn.execute('load httpfs;').fetchall()
+            conn.execute(f"CREATE VIEW issue AS SELECT * FROM read_parquet('{self.file}')", []).fetchall()
+            
 
         self.conn = conn
 
